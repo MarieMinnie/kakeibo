@@ -247,6 +247,7 @@ let state = {
     {id:"izumiya",name:"イズミヤ",  icon:"🛒",color:"#8e24aa",balance:0},
     {id:"coop",   name:"コープ",    icon:"🛒",color:"#1e88e5",balance:0},
     {id:"aeon",   name:"イオン",    icon:"🛒",color:"#e65100",balance:0},
+    {id:"paypay", name:"PayPay",    icon:"📱",color:"#ff6600",balance:0},
   ]),
   tab: "home",
   lastExpDate: new Date().toISOString().slice(0,10), // ⑦最後に使った日付を記憶
@@ -316,13 +317,18 @@ function doLogin(){
 }
 
 function initApp(){
-  // KipsとPayPayが未登録なら追加
+  // KipsとPayPayが未登録なら追加（カード）
   const ids = state.cards.map(c=>c.id);
   if(!ids.includes("kips")){
     state.cards.push({id:"kips",name:"Kipsカード",icon:"💳",color:"#2e7d32"});
   }
   if(!ids.includes("paypay")){
     state.cards.push({id:"paypay",name:"PayPayカード",icon:"💳",color:"#ff6600"});
+  }
+  // PayPayが電子マネーに未登録なら追加
+  const emIds = state.emoney.map(e=>e.id);
+  if(!emIds.includes("paypay")){
+    state.emoney.push({id:"paypay",name:"PayPay",icon:"📱",color:"#ff6600",balance:0});
   }
   saveAll();
   buildTabs();
@@ -832,23 +838,28 @@ function renderEmoney(){
   const emoneyTotal = state.emoney.reduce((s,e)=>s+e.balance,0);
   let list = state.emoney.map((em,i)=>`
     <div class="card">
-      <div class="row" style="margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:48px;height:48px;border-radius:14px;background:${em.color}20;display:flex;align-items:center;justify-content:center;font-size:26px">${em.icon}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:48px;height:48px;border-radius:14px;background:${em.color}20;display:flex;align-items:center;justify-content:center;font-size:26px">${em.icon}</div>
+        <div style="flex:1">
           <div style="font-weight:800;font-size:15px;color:#333">${em.name}</div>
+          <div style="font-size:12px;color:#aaa;margin-top:2px">現在の残高</div>
         </div>
-        <div style="font-weight:900;font-size:22px;color:${em.color}">${yen(em.balance)}</div>
+        <div style="font-weight:900;font-size:24px;color:${em.color}">${yen(em.balance)}</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <span style="font-size:13px;color:#aaa">残高 ¥</span>
-        <input type="number" value="${em.balance||""}" placeholder="0"
-          style="width:140px;padding:5px 8px;border-radius:8px;border:1.5px solid #e8f4fd;font-size:16px;font-weight:900;color:${em.color};outline:none"
-          oninput="updateEmoney(${i},this.value)"/>
-        <span style="font-size:12px;color:#aaa">円</span>
+      <!-- 残高直接編集 -->
+      <div style="background:#f8f8f8;border-radius:12px;padding:10px 12px;margin-bottom:10px">
+        <div style="font-size:11px;color:#888;font-weight:700;margin-bottom:6px">✏️ 残高を直接修正する</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:13px;color:#aaa">¥</span>
+          <input type="number" value="${em.balance||""}" placeholder="0"
+            style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #e8f4fd;font-size:18px;font-weight:900;color:${em.color};outline:none"
+            oninput="updateEmoney(${i},this.value)"/>
+          <span style="font-size:12px;color:#aaa">円</span>
+        </div>
+        <div style="font-size:11px;color:#aaa;margin-top:6px">💡 実際の残高と合わない時はここで直接修正できます</div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button style="flex:1;background:linear-gradient(135deg,#e53935,#ff7043);color:#fff;border:none;border-radius:10px;padding:8px;font-weight:700;font-size:12px;cursor:pointer" onclick="showAddEmoneyModal(${i})">💳 チャージ（入金）する</button>
-      </div>
+      <!-- チャージボタン -->
+      <button style="width:100%;background:linear-gradient(135deg,#e53935,#ff7043);color:#fff;border:none;border-radius:10px;padding:10px;font-weight:700;font-size:13px;cursor:pointer" onclick="showAddEmoneyModal(${i})">💳 チャージ（入金）する</button>
     </div>`).join("");
 
   return `
