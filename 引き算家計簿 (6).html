@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="引き算家計簿"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<title>💰 引き算家計簿</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:linear-gradient(160deg,#f0f7ff,#e8f4fd);font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;min-height:100vh;overscroll-behavior:none;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+input,button,select{font-family:inherit;}
+.app{max-width:480px;margin:0 auto;padding-bottom:90px;}
+.header{background:linear-gradient(135deg,#4facfe,#00c9ff);padding:20px 18px 16px;border-radius:0 0 32px 32px;box-shadow:0 6px 24px rgba(79,172,254,0.35);}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.header-title{font-size:21px;font-weight:900;color:#fff;letter-spacing:1px;}
+.header-sub{color:rgba(255,255,255,0.85);font-size:12px;margin-top:2px;}
+.savings-box{background:rgba(255,255,255,0.2);border-radius:14px;padding:8px 13px;text-align:center;}
+.savings-label{color:rgba(255,255,255,0.8);font-size:10px;font-weight:700;}
+.savings-val{color:#fff;font-weight:900;font-size:16px;}
+.balance-box{margin-top:12px;background:rgba(255,255,255,0.15);border-radius:18px;padding:13px 16px;}
+.balance-bar-bg{background:rgba(255,255,255,0.2);border-radius:8px;height:11px;overflow:hidden;margin-top:6px;}
+.balance-bar{height:100%;border-radius:8px;transition:width 0.5s;background:#fff;}
+.balance-info{display:flex;justify-content:space-between;margin-top:5px;}
+.balance-info span{color:rgba(255,255,255,0.85);font-size:11px;}
+.tip-box{margin-top:8px;background:rgba(255,255,255,0.15);border-radius:12px;padding:7px 12px;font-size:12px;color:#fff;line-height:1.5;}
+.tabs{display:flex;gap:5px;padding:12px 12px 0;overflow-x:auto;padding-bottom:2px;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;padding:7px 11px;border-radius:20px;border:none;font-weight:700;font-size:11px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.tab-btn.active{background:#4facfe;color:#fff;box-shadow:0 2px 8px rgba(79,172,254,0.4);}
+.tab-btn:not(.active){background:#fff;color:#888;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+.content{padding:14px;}
+.page{display:none;animation:fadeIn 0.2s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.card{background:#fff;border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.card-title{font-weight:700;font-size:14px;color:#333;}
+.gradient-card{border-radius:20px;padding:16px 20px;margin-bottom:12px;}
+.gradient-blue{background:linear-gradient(135deg,#4facfe,#00c9ff);box-shadow:0 4px 16px rgba(79,172,254,0.3);}
+.gradient-orange{background:linear-gradient(135deg,#ff8c00,#ffb347);box-shadow:0 4px 16px rgba(255,140,0,0.3);}
+.gradient-purple{background:linear-gradient(135deg,#667eea,#764ba2);box-shadow:0 4px 16px rgba(102,126,234,0.3);}
+.gradient-card .gc-label{color:rgba(255,255,255,0.85);font-size:12px;font-weight:700;}
+.gradient-card .gc-val{color:#fff;font-weight:900;font-size:34px;line-height:1.1;margin-top:4px;}
+.row{display:flex;justify-content:space-between;align-items:center;}
+.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer;}
+.btn-blue{background:linear-gradient(135deg,#4facfe,#00c9ff);color:#fff;box-shadow:0 2px 8px rgba(79,172,254,0.35);}
+.btn-orange{background:linear-gradient(135deg,#ff8c00,#ffb347);color:#fff;box-shadow:0 2px 8px rgba(255,140,0,0.35);}
+.btn-purple{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+.btn-gray{background:#f5f5f5;color:#888;}
+.btn-red{background:linear-gradient(135deg,#ff6b6b,#ff4444);color:#fff;}
+.btn-full{width:100%;padding:14px;border-radius:16px;font-size:14px;font-weight:800;border:none;cursor:pointer;}
+.cat-item{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:9px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.cat-row{display:flex;align-items:center;gap:10px;}
+.prog-bg{background:#f5f5f5;border-radius:6px;height:7px;overflow:hidden;margin-top:8px;}
+.prog-bar{height:100%;border-radius:6px;transition:width 0.4s;}
+.list-item{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:9px;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;align-items:center;gap:12px;}
+.list-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.list-info{flex:1;min-width:0;}
+.list-name{font-weight:700;font-size:14px;color:#333;}
+.list-sub{font-size:11px;color:#aaa;margin-top:2px;}
+.list-val{font-weight:900;font-size:16px;flex-shrink:0;}
+.icon-del{background:none;border:none;color:#ddd;font-size:18px;cursor:pointer;padding:4px;}
+.icon-edit{background:#f0f7ff;border:none;color:#4facfe;font-size:12px;border-radius:8px;padding:4px 8px;cursor:pointer;font-weight:700;}
+.sort-btns{display:flex;flex-direction:column;gap:2px;}
+.sort-btn{background:none;border:none;font-size:13px;cursor:pointer;padding:1px 4px;color:#667eea;}
+.sort-btn:disabled{color:#ddd;cursor:default;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:24px 24px 0 0;padding:20px 20px 40px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;animation:slideUp 0.25s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.modal-title{font-weight:900;font-size:17px;}
+.modal-close{background:#f5f5f5;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;color:#888;}
+.field{margin-bottom:12px;}
+.field-label{font-size:12px;color:#888;font-weight:700;margin-bottom:6px;}
+.field-input{width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid #e8f4fd;font-size:14px;outline:none;box-sizing:border-box;}
+.field-input:focus{border-color:#4facfe;}
+.field-input-lg{width:100%;padding:12px 14px 12px 30px;border-radius:12px;border:1.5px solid #e8f4fd;font-size:22px;font-weight:900;outline:none;box-sizing:border-box;color:#333;}
+.field-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-weight:900;font-size:16px;}
+.chip-group{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{padding:7px 12px;border-radius:20px;border:none;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;}
+.icon-picker{display:flex;flex-wrap:wrap;gap:6px;max-height:180px;overflow-y:auto;padding:4px 2px;}
+.icon-btn{width:40px;height:40px;border-radius:10px;border:2px solid #f0f0f0;background:#fff;font-size:20px;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.icon-btn.selected{border:3px solid #4facfe;background:#e8f4fd;}
+.color-picker{display:flex;flex-wrap:wrap;gap:8px;}
+.color-btn{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
+.color-btn.selected{border:3px solid #333;box-shadow:0 0 0 2px #fff inset;}
+.empty{text-align:center;padding:48px;color:#ccc;}
+.empty-icon{font-size:48px;}
+.empty-text{margin-top:8px;font-size:14px;}
+.login-page{min-height:100vh;background:linear-gradient(160deg,#f0f7ff,#b8e4ef);display:flex;align-items:center;justify-content:center;}
+.login-box{width:320px;text-align:center;padding:0 20px;}
+.login-card{background:rgba(255,255,255,0.9);border-radius:20px;padding:28px 24px;box-shadow:0 8px 32px rgba(79,172,254,0.18);}
+.login-input{width:100%;padding:13px 16px;border-radius:12px;border:1.5px solid #c8e8f4;font-size:16px;outline:none;box-sizing:border-box;text-align:center;letter-spacing:3px;background:#f8fbff;}
+.login-input:focus{border-color:#4facfe;}
+.login-err{color:#ff6b6b;font-size:12px;margin-top:10px;font-weight:700;min-height:18px;}
+.login-btn{margin-top:16px;width:100%;padding:14px;background:linear-gradient(135deg,#4facfe,#00c9ff);color:#fff;border:none;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.shake{animation:shake 0.4s ease;}
+.chart-wrap{display:flex;gap:4px;align-items:flex-end;height:120px;overflow-x:auto;padding-bottom:2px;}
+.chart-col{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:44px;flex:1;}
+.chart-bars{width:100%;height:95px;display:flex;align-items:flex-end;gap:3px;}
+.bar-bud{flex:1;background:#e8f4fd;border-radius:4px 4px 0 0;border:2px solid #4facfe;border-bottom:none;}
+.bar-spent{flex:1;border-radius:4px 4px 0 0;transition:height 0.4s;}
+.over-label{font-size:9px;color:#ff4444;font-weight:700;white-space:nowrap;height:14px;line-height:14px;}
+.legend{display:flex;gap:14px;justify-content:center;margin-top:8px;}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:#888;}
+.legend-dot{width:12px;height:12px;border-radius:2px;}
+.setting-section{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.divider{border-top:1px solid #f5f5f5;}
+.pw-msg{font-size:12px;font-weight:700;min-height:18px;margin-bottom:8px;}
+.balance-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:rgba(255,255,255,0.9);margin-bottom:6px;}
+.divider-white{height:1px;background:rgba(255,255,255,0.3);margin:8px 0;}
+</style>
+</head>
+<body>
+<div id="loginPage" class="login-page">
+  <div class="login-box">
+    <div style="font-size:56px;margin-bottom:8px">💰</div>
+    <div style="font-size:26px;font-weight:900;color:#4facfe;margin-bottom:4px">引き算家計簿</div>
+    <div style="font-size:12px;color:#7aadbe;margin-bottom:36px;letter-spacing:3px">KAKEIBO</div>
+    <div class="login-card" id="loginCard">
+      <div style="font-size:13px;color:#888;font-weight:700;margin-bottom:12px;text-align:left">🔑 パスワード</div>
+      <input type="password" id="pwInput" class="login-input" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <div class="login-err" id="loginErr"></div>
+      <button class="login-btn" onclick="doLogin()">ログイン →</button>
+    </div>
+  </div>
+</div>
+
+<div id="mainApp" style="display:none;">
+  <div class="app">
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="header-title">💰 引き算家計簿</div>
+          <div class="header-sub" id="bmLabel"></div>
+        </div>
+        <div class="savings-box">
+          <div class="savings-label">🌸 節約お楽しみ貯金</div>
+          <div class="savings-val" id="headerSavings">¥0</div>
+        </div>
+      </div>
+      <div class="balance-box">
+        <div class="row">
+          <div style="color:#fff;font-size:12px;font-weight:700">流動費の残高</div>
+          <div style="color:#fff;font-weight:900;font-size:32px;line-height:1" id="headerRemaining">¥0</div>
+        </div>
+        <div class="balance-bar-bg">
+          <div class="balance-bar" id="balanceBar" style="width:100%"></div>
+        </div>
+        <div class="balance-info">
+          <span id="headerSpent">使った: ¥0</span>
+          <span id="headerBudget">変動費予算: ¥0</span>
+        </div>
+      </div>
+      <div class="tip-box" id="tipBox"></div>
+    </div>
+    <div class="tabs" id="tabsContainer"></div>
+    <div class="content">
+      <div id="page-home" class="page"></div>
+      <div id="page-income" class="page"></div>
+      <div id="page-budget" class="page"></div>
+      <div id="page-fixed" class="page"></div>
+      <div id="page-weekly" class="page"></div>
+      <div id="page-history" class="page"></div>
+      <div id="page-cards" class="page"></div>
+      <div id="page-accounts" class="page"></div>
+      <div id="page-emoney" class="page"></div>
+      <div id="page-savings" class="page"></div>
+      <div id="page-settings" class="page"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+    <button id="modalSaveBtn" class="btn-full btn-blue" style="margin-top:16px;" onclick="modalSave()"></button>
+  </div>
+</div>
+
+<script>
+const DEFAULT_PW = "kakeibo50";
+const TIPS = ["☕ コーヒー1杯を自炊に変えると月¥2,000節約！","🛒 まとめ買いで特売をうまく活用しよう！","🌙 夜の衝動買いは翌朝まで待ってみて！","📱 使っていないサブスク、見直し時かも！","🍱 お弁当1回増やすと月¥3,000変わるかも！","🎯 今週の残金を貯金に回すと夢に近づく！","💡 固定費を年1回見直すと大きな節約に！","🌸 予算内に収まった日は自分を褒めてあげて！","🎀 小さな節約が積み重なって大きな夢になる！","🌿 今日の我慢が未来の自分へのプレゼント！"];
+const ICONS = ["🍱","🧴","🎀","🚃","💊","🐾","👗","📚","🏠","🎮","🌸","☕","🍺","💄","🏥","✈️","🎁","🪴","🐟","🧸","💳","🏦","💡","📱","🚰","🔑","🐕","📺","🎵","🍜","🛍️","🏋️","💈","🌿","🍰","🚿","⚡","🎓","🐱","🌺","🍣","🚙","🏖️","🎨","🔧","🌍","🍎","🍵","🎯","🐠","🦷","🩺","🛒","🌙","⭐","🎠","🚴","🧘","🍷","💅","🧹","🐣","🌻","🎪","🏄","🦋","🌈","🍓","🎶","🧁"];
+const CAT_COLORS = ["#ff8c69","#66bb6a","#ab8ee8","#42a5f5","#ef5350","#ffb347","#26c6da","#ec407a","#8d6e63","#78909c","#43e97b","#f06292","#4dd0e1","#ff7043","#9c27b0","#00bcd4"];
+const CARD_ICONS = ["💳","🏦","💰","🪙","🏧","🛒","🌐","⭐","📱","🔖"];
+const CARD_COLORS = ["#cc0000","#0055aa","#008800","#ff8800","#880088","#008888","#444444","#cc6600","#006666","#884400"];
+const INC_ICONS = ["💴","💰","🏦","📱","🌐","💵","🎁","⭐","💼","🏠","📊","🌸","🎵","🎓","🏪"];
+const FIX_ICONS = ["🏠","💡","🚰","📱","💳","🚗","🎓","📺","🏋️","🐕","🔑","💊","🌐","📡","🏦","🎵","☕","🐱","🚿","⚡","🌿","🎀","🧴","🍜","🛍️","🌸","🎁","🚴"];
+
+// 固定費専用カテゴリー
+const FIXED_CATS = [
+  {id:"konetsu",  icon:"💡", label:"光熱費",   color:"#ffb347"},
+  {id:"tsushin",  icon:"📱", label:"通信費",   color:"#42a5f5"},
+  {id:"kuruma",   icon:"🚗", label:"車",       color:"#78909c"},
+  {id:"hoken",    icon:"🛡️", label:"保険税金", color:"#ab8ee8"},
+  {id:"loan",     icon:"🏦", label:"ローン",   color:"#667eea"},
+];
+
+const DEFAULT_CATS = [
+  {id:"food",  icon:"🍱",label:"食費",      color:"#ff8c69",budget:15000},
+  {id:"daily", icon:"🧴",label:"日用品",    color:"#66bb6a",budget:8000},
+  {id:"fun",   icon:"🎀",label:"娯楽",      color:"#ab8ee8",budget:5000},
+  {id:"trans", icon:"🚃",label:"交通費",    color:"#42a5f5",budget:5000},
+  {id:"saving",icon:"💵",label:"先取り貯金",color:"#43e97b",budget:10000},
+  {id:"other", icon:"🪴",label:"その他",    color:"#aaa",   budget:5000},
+];
+const DEFAULT_CARDS = [
+  {id:"rakuten",name:"楽天カード",  icon:"💳",color:"#cc0000"},
+  {id:"ion",    name:"イオンカード",icon:"💳",color:"#0055aa"},
+  {id:"kips",   name:"Kipsカード",  icon:"💳",color:"#2e7d32"},
+  {id:"paypay", name:"PayPayカード",icon:"💳",color:"#ff6600"},
+];
+const WEEK_LABELS = ["第1週","第2週","第3週","第4週","第5週"];
+const TABS = [
+  ["home","🏠","ホーム"],["income","💴","収入"],["budget","📋","予算"],
+  ["fixed","📌","固定費"],["weekly","📊","週間"],["history","📋","履歴"],
+  ["cards","💳","カード"],["accounts","🏦","口座"],["emoney","💳","電子マネー"],["savings","🌸","貯金"],["settings","⚙️","設定"]
+];
+
+function ls(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return fb;}}
+function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+let state = {
+  cats:     ls("kk_cats",    DEFAULT_CATS),
+  exps:     ls("kk_exps",    []),
+  incomes:  ls("kk_incomes", []),
+  savings:  ls("kk_savings", 0),
+  savHist:  ls("kk_savHist", []),
+  cards:    ls("kk_cards",   DEFAULT_CARDS),
+  fixed:    ls("kk_fixed",   []),
+  accounts: ls("kk_accounts",[
+    {id:"cash",    name:"手元現金", icon:"💴",color:"#66bb6a",balance:0},
+    {id:"bank1",   name:"普通預金", icon:"🏦",color:"#4facfe",balance:0},
+    {id:"savings1",name:"貯金通帳", icon:"🐷",color:"#43e97b",balance:0},
+  ]),
+  emoney: ls("kk_emoney",[
+    {id:"okawa",  name:"オークワ",  icon:"🛒",color:"#e53935",balance:0},
+    {id:"izumiya",name:"イズミヤ",  icon:"🛒",color:"#8e24aa",balance:0},
+    {id:"coop",   name:"コープ",    icon:"🛒",color:"#1e88e5",balance:0},
+    {id:"aeon",   name:"イオン",    icon:"🛒",color:"#e65100",balance:0},
+    {id:"paypay", name:"PayPay",    icon:"📱",color:"#ff6600",balance:0},
+  ]),
+  tab: "home",
+  lastExpDate: new Date().toISOString().slice(0,10), // ⑦最後に使った日付を記憶
+};
+
+function saveAll(){
+  ss("kk_cats",    state.cats);
+  ss("kk_exps",    state.exps);
+  ss("kk_incomes", state.incomes);
+  ss("kk_savings", state.savings);
+  ss("kk_savHist", state.savHist);
+  ss("kk_cards",   state.cards);
+  ss("kk_fixed",   state.fixed);
+  ss("kk_accounts",state.accounts);
+  ss("kk_emoney",  state.emoney);
+  ss("kk_lastExpDate", state.lastExpDate);
+}
+
+function yen(n){return"¥"+Math.abs(Math.round(n)).toLocaleString("ja-JP");}
+function today(){return new Date().toISOString().slice(0,10);}
+function getBM(){
+  const d=new Date(),y=d.getFullYear(),m=d.getMonth(),day=d.getDate();
+  if(day>=15)return{start:new Date(y,m,15),label:`${y}年${m+1}月15日〜`};
+  const pm=m===0?11:m-1,py=m===0?y-1:y;
+  return{start:new Date(py,pm,15),label:`${py}年${pm+1}月15日〜`};
+}
+function getWI(dateStr,start){
+  const diff=Math.floor((new Date(dateStr)-start)/86400000);
+  return Math.min(Math.max(Math.floor(diff/7),0),4);
+}
+function getCat(id){return state.cats.find(c=>c.id===id)||{icon:"❓",label:"不明",color:"#aaa"};}
+function getCard(id){
+  if(id&&id.startsWith("em_")){const emId=id.replace("em_","");return state.emoney.find(e=>e.id===emId)||{icon:"🛒",name:"電子マネー",color:"#e53935"};}
+  return state.cards.find(c=>c.id===id)||{icon:"💴",name:"現金",color:"#aaa"};
+}
+function getFixedCat(id){return FIXED_CATS.find(c=>c.id===id)||FIXED_CATS[0];}
+
+function calcTotals(){
+  // 安全対策：未定義の場合は空配列
+  if(!state.emoney) state.emoney = [];
+  if(!state.incomes) state.incomes = [];
+  if(!state.fixed) state.fixed = [];
+  const totalIncome  = state.incomes.reduce((s,i)=>s+i.amount,0);
+  // 今月支払分（先月カード利用分）は変動費計算から除外
+  const totalSpent   = state.exps.filter(e=>e.cardType!=="payment").reduce((s,e)=>s+e.amount,0);
+  const totalPayment = state.exps.filter(e=>e.cardType==="payment").reduce((s,e)=>s+e.amount,0);
+  const fixedTotal   = state.fixed.reduce((s,f)=>s+f.amount,0);
+  const totalCatBudget = state.cats.reduce((s,c)=>s+(c.budget||0),0);
+  const remaining    = totalCatBudget - totalSpent;
+  const catTotals    = {};
+  // カテゴリー集計も今月支払分を除外
+  state.exps.filter(e=>e.cardType!=="payment").forEach(e=>{catTotals[e.categoryId]=(catTotals[e.categoryId]||0)+e.amount;});
+  const cardTotals   = {};
+  state.exps.forEach(e=>{if(e.cardId&&e.cardId!=="cash")cardTotals[e.cardId]=(cardTotals[e.cardId]||0)+e.amount;});
+  return {totalIncome,totalSpent,totalPayment,fixedTotal,totalCatBudget,remaining,catTotals,cardTotals};
+}
+
+function doLogin(){
+  const pw = document.getElementById("pwInput").value;
+  const savedPw = ls("kk_pw", DEFAULT_PW);
+  if(pw === savedPw){
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+    // lastExpDateをlocalStorageから復元
+    state.lastExpDate = ls("kk_lastExpDate", today());
+    initApp();
+  } else {
+    document.getElementById("loginErr").textContent = "パスワードが違います🔐";
+    const card = document.getElementById("loginCard");
+    card.classList.add("shake");
+    setTimeout(()=>card.classList.remove("shake"),500);
+    document.getElementById("pwInput").value = "";
+  }
+}
+
+function initApp(){
+  // KipsとPayPayが未登録なら追加（カード）
+  const ids = state.cards.map(c=>c.id);
+  if(!ids.includes("kips")){
+    state.cards.push({id:"kips",name:"Kipsカード",icon:"💳",color:"#2e7d32"});
+  }
+  if(!ids.includes("paypay")){
+    state.cards.push({id:"paypay",name:"PayPayカード",icon:"💳",color:"#ff6600"});
+  }
+  // PayPayが電子マネーに未登録なら追加
+  const emIds = state.emoney.map(e=>e.id);
+  if(!emIds.includes("paypay")){
+    state.emoney.push({id:"paypay",name:"PayPay",icon:"📱",color:"#ff6600",balance:0});
+  }
+  saveAll();
+  buildTabs();
+  renderAll();
+  setTab("home");
+}
+
+function buildTabs(){
+  const c = document.getElementById("tabsContainer");
+  c.innerHTML = TABS.map(([key,icon,label])=>
+    `<button class="tab-btn" id="tab-${key}" onclick="setTab('${key}')">${icon} ${label}</button>`
+  ).join("");
+}
+
+function setTab(key){
+  state.tab = key;
+  TABS.forEach(([k])=>{
+    document.getElementById(`tab-${k}`).classList.toggle("active", k===key);
+    document.getElementById(`page-${k}`).classList.toggle("active", k===key);
+  });
+  renderPage(key);
+}
+
+function renderAll(){ updateHeader(); renderPage(state.tab); }
+
+function updateHeader(){
+  const bm = getBM();
+  const {totalSpent,totalCatBudget,remaining} = calcTotals();
+  document.getElementById("bmLabel").textContent = bm.label;
+  document.getElementById("headerSavings").textContent = yen(state.savings);
+  const remEl = document.getElementById("headerRemaining");
+  remEl.textContent = yen(remaining);
+  remEl.style.color = remaining < totalCatBudget*0.1 ? "#ffe082" : "#fff";
+  document.getElementById("headerSpent").textContent = "使った: "+yen(totalSpent);
+  document.getElementById("headerBudget").textContent = "変動費予算: "+yen(totalCatBudget);
+  const pct = totalCatBudget>0 ? Math.max(0,Math.min(100,(remaining/totalCatBudget)*100)) : 100;
+  const bar = document.getElementById("balanceBar");
+  bar.style.width = pct+"%";
+  bar.style.background = remaining<totalCatBudget*0.1 ? "#ffe082" : remaining<totalCatBudget*0.2 ? "#a5f3fc" : "#fff";
+  document.getElementById("tipBox").textContent = "💡 "+TIPS[new Date().getDate()%TIPS.length];
+}
+
+function renderPage(key){
+  updateHeader();
+  const el = document.getElementById("page-"+key);
+  switch(key){
+    case "home":     el.innerHTML = renderHome(); break;
+    case "income":   el.innerHTML = renderIncome(); break;
+    case "budget":   el.innerHTML = renderBudget(); break;
+    case "fixed":    el.innerHTML = renderFixed(); break;
+    case "weekly":   el.innerHTML = renderWeekly(); break;
+    case "history":  el.innerHTML = renderHistory(); break;
+    case "cards":    el.innerHTML = renderCards(); break;
+    case "accounts": el.innerHTML = renderAccounts(); break;
+    case "emoney":   el.innerHTML = renderEmoney(); break;
+    case "savings":  el.innerHTML = renderSavings(); break;
+    case "settings": el.innerHTML = renderSettings(); break;
+  }
+  if(key==="accounts") bindAccountInputs();
+}
+
+// ━━ ホーム ━━
+function renderHome(){
+  const {totalSpent,totalCatBudget,remaining,catTotals,fixedTotal} = calcTotals();
+  let chartCols = state.cats.map(cat=>{
+    const spent=catTotals[cat.id]||0, bud=cat.budget||0;
+    const maxVal=Math.max(bud,spent,1);
+    const budH=bud>0?Math.round((bud/maxVal)*90):0;
+    const spentH=Math.min(Math.round((spent/maxVal)*90),90);
+    const over=bud>0&&spent>bud;
+    const spentColor=over?"linear-gradient(180deg,#ff6b6b,#ff4444)":cat.color;
+    return `<div class="chart-col">
+      <div class="over-label">${over?"超過!":""}</div>
+      <div class="chart-bars">
+        ${bud>0?`<div class="bar-bud" style="height:${budH}px;min-height:4px;flex:1;"></div>`:"<div style='flex:1'></div>"}
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:95px;">
+          <div style="height:${spentH}px;min-height:${spent>0?4:0}px;background:${spentColor};border-radius:4px 4px 0 0;transition:height 0.4s;"></div>
+        </div>
+      </div>
+      <div style="font-size:17px;line-height:1">${cat.icon}</div>
+      <div style="font-size:9px;color:#888;text-align:center;line-height:1.2;max-width:44px">${cat.label}</div>
+    </div>`;
+  }).join("");
+
+  let catList = state.cats.map(cat=>{
+    const spent=catTotals[cat.id]||0, bud=cat.budget||0;
+    const pct=bud>0?Math.min(100,(spent/bud)*100):0;
+    const over=bud>0&&spent>bud;
+    return `<div class="cat-item" style="border:1.5px solid ${over?'#ffaaaa':'transparent'}">
+      <div class="cat-row">
+        <span style="font-size:26px">${cat.icon}</span>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px;color:#333">${cat.label}</div>
+          ${bud>0?`<div style="font-size:11px;color:${over?'#ff4444':'#aaa'}">${over?"⚠️ 予算超過！":"予算: "+yen(bud)}</div>`:""}
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:900;font-size:17px;color:${spent>0?cat.color:'#ddd'}">${yen(spent)}</div>
+          ${bud>0?`<div style="font-size:11px;color:${over?'#ff4444':'#aaa'}">残 ${yen(bud-spent)}</div>`:""}
+        </div>
+      </div>
+      ${bud>0?`<div class="prog-bg"><div class="prog-bar" style="width:${pct}%;background:${over?'#ff6b6b':cat.color}"></div></div>`:""}
+    </div>`;
+  }).join("");
+
+  const fixedBanner = state.fixed.length>0 ? `
+    <div class="gradient-card gradient-purple" style="border-radius:16px;padding:12px 16px;margin-bottom:9px;">
+      <div class="row">
+        <div>
+          <div style="color:rgba(255,255,255,0.85);font-size:11px;font-weight:700">📌 今月の固定費合計</div>
+          <div style="color:#fff;font-weight:900;font-size:22px;margin-top:2px">${yen(fixedTotal)}</div>
+        </div>
+        <button style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:12px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer;" onclick="setTab('fixed')">詳細 →</button>
+      </div>
+    </div>` : "";
+
+  // ⑧ 月末リセットボタンの文言変更
+  const resetBtn = remaining>0
+    ? `<button class="btn-full" style="background:linear-gradient(135deg,#43e97b,#38f9d7);color:#fff;border:none;border-radius:16px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 3px 14px rgba(67,233,123,0.35);" onclick="showResetModal()">🌸 節約お楽しみ貯金 → ${yen(remaining)} を貯金へ！</button>`
+    : `<button class="btn-full" style="background:#eee;color:#aaa;border:none;border-radius:16px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;" onclick="showResetModal()">🌸 節約お楽しみ貯金（残金なし）</button>`;
+
+  return `
+    <div class="row" style="margin-bottom:12px">
+      <div style="font-weight:800;font-size:16px;color:#333">カテゴリー別</div>
+      <button class="btn btn-blue" onclick="showAddExpModal()">＋ 支出を追加</button>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;font-size:13px;color:#333;margin-bottom:10px">📊 予算 vs 支出グラフ</div>
+      <div class="chart-wrap">${chartCols}</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#e8f4fd;border:2px solid #4facfe"></div>予算</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff8c69"></div>支出</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff4444"></div>超過</div>
+      </div>
+    </div>
+    ${catList}${fixedBanner}${resetBtn}`;
+}
+
+// ━━ 収入 ━━（③④改善）
+function renderIncome(){
+  const {totalIncome,totalSpent,totalPayment,fixedTotal,totalCatBudget} = calcTotals();
+  const remaining = totalCatBudget - totalSpent;
+  const balance = totalIncome - fixedTotal - totalCatBudget;
+
+  let list = state.incomes.length===0
+    ? `<div class="empty"><div class="empty-icon">💴</div><div class="empty-text">収入を追加しましょう</div></div>`
+    : state.incomes.map((inc,i)=>`
+      <div class="list-item">
+        <div class="list-icon" style="background:#fff3e0">${inc.icon}</div>
+        <div class="list-info">
+          <div class="list-name">${inc.label}</div>
+          <div class="list-sub">${inc.date}${inc.note?" · "+inc.note:""}</div>
+        </div>
+        <div class="list-val" style="color:#ff8c00">＋${yen(inc.amount)}</div>
+        <button style="background:#fff3e0;border:none;color:#ff8c00;font-size:12px;border-radius:8px;padding:4px 8px;cursor:pointer;font-weight:700" onclick="showEditIncModal(${i})">✏️</button>
+        <button class="icon-del" onclick="delIncome(${i})">✕</button>
+      </div>`).join("");
+
+  return `
+    <div class="row" style="margin-bottom:14px">
+      <div><div style="font-weight:800;font-size:16px;color:#333">収入 💴</div><div style="font-size:12px;color:#aaa;margin-top:2px">今月の収入をまとめて管理</div></div>
+      <button class="btn btn-orange" onclick="showAddIncModal()">＋ 追加</button>
+    </div>
+    <div class="gradient-card gradient-orange">
+      <div class="gc-label">今月の収入合計</div>
+      <div class="gc-val">${yen(totalIncome)}</div>
+      <div class="divider-white"></div>
+      <!-- ④ 文字サイズ大きく -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:15px;color:rgba(255,255,255,0.95);font-weight:700">📌 固定費合計</span>
+        <span style="font-size:18px;font-weight:900;color:#fff">－${yen(fixedTotal)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:700">💳 今月支払分（計算外）</span>
+        <span style="font-size:15px;font-weight:700;color:rgba(255,255,255,0.8)">${yen(totalPayment)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:15px;color:rgba(255,255,255,0.95);font-weight:700">🏷️ 変動費予算合計</span>
+        <span style="font-size:18px;font-weight:900;color:#fff">－${yen(totalCatBudget)}</span>
+      </div>
+      <div class="divider-white"></div>
+      <!-- ③ 変動費の残金 -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span style="font-size:15px;color:#fff;font-weight:800">💰 流動費の残高</span>
+        <span style="font-size:22px;font-weight:900;color:${remaining>=0?'#fff':'#ffe082'}">${remaining>=0?"＋":""}${yen(remaining)}</span>
+      </div>
+
+      <div class="divider-white"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span style="font-size:16px;color:#fff;font-weight:900">💎 収支バランス</span>
+        <span style="font-size:28px;font-weight:900;color:${balance>=0?'#fff':'#ffe082'}">${balance>=0?"＋":""}${yen(balance)}</span>
+      </div>
+    </div>
+    ${list}`;
+}
+
+// ━━ 予算 ━━
+function renderBudget(){
+  const {totalIncome,totalSpent,fixedTotal,totalCatBudget,catTotals} = calcTotals();
+  const balance = totalIncome - fixedTotal - totalCatBudget;
+  const warn = totalIncome>0 && (totalCatBudget+fixedTotal)>totalIncome
+    ? `<div style="background:rgba(255,224,130,0.3);border-radius:10px;padding:6px 10px;font-size:12px;color:#ffe082;font-weight:700;margin-top:8px">⚠️ 予算合計が収入を超えています！見直しをお勧めします。</div>` : "";
+
+  let catRows = state.cats.map(cat=>{
+    const spent=catTotals[cat.id]||0, bud=cat.budget||0;
+    const pct=bud>0?Math.min(100,(spent/bud)*100):0;
+    const over=bud>0&&spent>bud;
+    const rest=bud-spent;
+    return `<div style="margin-bottom:16px">
+      <div class="row" style="margin-bottom:5px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:18px">${cat.icon}</span>
+          <span style="font-size:13px;font-weight:700;color:#333">${cat.label}</span>
+        </div>
+        <div style="text-align:right">
+          <span style="font-size:14px;font-weight:900;color:${over?'#ff4444':cat.color}">${yen(spent)}</span>
+          ${bud>0?`<span style="font-size:11px;color:#aaa"> / ${yen(bud)}</span>`:""}
+        </div>
+      </div>
+      ${bud>0?`
+        <div class="prog-bg"><div class="prog-bar" style="width:${pct}%;background:${over?'linear-gradient(90deg,#ff6b6b,#ff4444)':cat.color}"></div></div>
+        <div class="row" style="margin-top:4px">
+          <span style="font-size:11px;color:${over?'#ff4444':'#43e97b'};font-weight:700">${over?"⚠️ "+yen(Math.abs(rest))+" 超過":"残り "+yen(rest)}</span>
+          <span style="font-size:11px;color:${over?'#ff4444':'#aaa'};font-weight:700">${Math.round(pct)}%使用</span>
+        </div>`:""}
+    </div>`;
+  }).join("");
+
+  return `
+    <div style="font-weight:800;font-size:16px;color:#333;margin-bottom:14px">予算管理 📋</div>
+    <div class="gradient-card gradient-blue">
+      <div class="gc-label">今月の収入合計</div>
+      <div class="gc-val">${yen(totalIncome)}</div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">
+        <div class="balance-row"><span>📌 固定費合計</span><span style="font-weight:700">－${yen(fixedTotal)}</span></div>
+        <div class="balance-row"><span>🏷️ 変動費予算合計</span><span style="font-weight:700">－${yen(totalCatBudget)}</span></div>
+        <div class="divider-white"></div>
+        <div class="row">
+          <span style="font-size:14px;font-weight:900;color:#fff">収支バランス</span>
+          <span style="font-size:16px;font-weight:900;color:${balance>=0?'#fff':'#ffe082'}">${balance>=0?"＋":""}${yen(balance)}</span>
+        </div>
+      </div>
+      ${warn}
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">💰 変動費の月予算（自動集計）</div>
+      <div style="font-size:11px;color:#aaa;margin:4px 0 8px">カテゴリーの予算を変更すると自動で更新されます</div>
+      <div style="font-weight:900;font-size:28px;color:#4facfe">${yen(totalCatBudget)}</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">🏷️ カテゴリー別 予算 vs 支出</div>
+      ${catRows}
+      <div class="divider" style="padding-top:12px">
+        <div class="row">
+          <span style="font-size:13px;font-weight:800;color:#333">合計</span>
+          <div>
+            <span style="font-size:16px;font-weight:900;color:${totalSpent>totalCatBudget?'#ff4444':'#4facfe'}">${yen(totalSpent)}</span>
+            <span style="font-size:12px;color:#aaa"> / ${yen(totalCatBudget)}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ━━ 固定費 ━━（①固定費専用カテゴリー）
+function renderFixed(){
+  const {fixedTotal} = calcTotals();
+  let list = state.fixed.length===0
+    ? `<div class="empty"><div class="empty-icon">📌</div><div class="empty-text">固定費を追加しましょう</div></div>`
+    : state.fixed.map((f,i)=>{
+        const cat=getFixedCat(f.categoryId);
+        const card=f.cardId&&f.cardId!=="cash"?getCard(f.cardId):null;
+        return `<div class="list-item">
+          <div class="sort-btns">
+            <button class="sort-btn" onclick="moveFixed(${i},-1)" ${i===0?"disabled":""}>▲</button>
+            <button class="sort-btn" onclick="moveFixed(${i},1)" ${i===state.fixed.length-1?"disabled":""}>▼</button>
+          </div>
+          <div class="list-icon" style="background:#f0eeff">${f.icon||cat.icon}</div>
+          <div class="list-info">
+            <div class="list-name">${f.name}</div>
+            <div class="list-sub">${cat.label}${card?" · "+card.name:""}</div>
+          </div>
+          <div class="list-val" style="color:#667eea">${yen(f.amount)}</div>
+          <button class="icon-edit" style="background:#f0eeff;color:#667eea;" onclick="showEditFixedModal(${i})">✏️</button>
+          <button class="icon-del" onclick="delFixed(${i})">✕</button>
+        </div>`;
+      }).join("");
+
+  return `
+    <div class="row" style="margin-bottom:14px">
+      <div><div style="font-weight:800;font-size:16px;color:#333">固定費 📌</div><div style="font-size:12px;color:#aaa;margin-top:2px">毎月必ず出ていくお金</div></div>
+      <button class="btn btn-purple" onclick="showAddFixedModal()">＋ 追加</button>
+    </div>
+    <div class="gradient-card gradient-purple">
+      <div class="gc-label">今月の固定費合計</div>
+      <div class="gc-val">${yen(fixedTotal)}</div>
+      <div style="color:rgba(255,255,255,0.8);font-size:11px;margin-top:6px">${state.fixed.length}件 · ▲▼ で並び替え可</div>
+    </div>
+    ${list}`;
+}
+
+// ━━ 週間 ━━
+function renderWeekly(){
+  const bm = getBM();
+  const weeklyData = WEEK_LABELS.map((label,wi)=>{
+    const we=state.exps.filter(e=>getWI(e.date,bm.start)===wi);
+    return{label,total:we.reduce((s,e)=>s+e.amount,0),count:we.length,items:we};
+  });
+  const maxW = Math.max(...weeklyData.map(w=>w.total),1);
+  return `
+    <div style="font-weight:800;font-size:16px;color:#333;margin-bottom:4px">週間まとめ 📊</div>
+    <div style="color:#aaa;font-size:12px;margin-bottom:14px">15日始まり・7日ごとの集計</div>
+    ${weeklyData.map(w=>{
+      const items = w.items.slice(0,4).map(item=>{
+        const cat=getCat(item.categoryId);
+        return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid #f5f5f5">
+          <span style="font-size:14px">${cat.icon}</span>
+          <div style="flex:1;font-size:12px;color:#555">${item.note||cat.label}</div>
+          <div style="font-weight:700;font-size:13px;color:#333">${yen(item.amount)}</div>
+        </div>`;
+      }).join("");
+      return `<div class="card">
+        <div class="row" style="margin-bottom:8px">
+          <div style="font-weight:700;font-size:14px;color:#333">${w.label}</div>
+          <div style="display:flex;gap:8px;align-items:baseline">
+            <span style="font-size:11px;color:#aaa">${w.count}件</span>
+            <span style="font-weight:900;font-size:18px;color:${w.total>0?'#4facfe':'#ddd'}">${yen(w.total)}</span>
+          </div>
+        </div>
+        <div style="background:#f0f7ff;border-radius:8px;height:10px;overflow:hidden">
+          <div style="height:100%;width:${(w.total/maxW)*100}%;background:linear-gradient(90deg,#4facfe,#00c9ff);border-radius:8px;transition:width 0.5s"></div>
+        </div>
+        ${w.items.length>0?`<div style="margin-top:10px">${items}${w.items.length>4?`<div style="font-size:11px;color:#aaa;text-align:center;margin-top:4px">他${w.items.length-4}件</div>`:""}</div>`:""}
+      </div>`;
+    }).join("")}`;
+}
+
+// ━━ 履歴 ━━（①編集ボタン追加）
+function renderHistory(){
+  if(state.exps.length===0) return `<div style="font-weight:800;font-size:16px;color:#333;margin-bottom:12px">支出履歴 📋</div><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">まだ支出がありません</div></div>`;
+  return `
+    <div style="font-weight:800;font-size:16px;color:#333;margin-bottom:12px">支出履歴 📋</div>
+    ${state.exps.map((exp,i)=>{
+      const cat=getCat(exp.categoryId);
+      const card=exp.cardId&&exp.cardId!=="cash"?getCard(exp.cardId):null;
+      const isCash=!exp.cardId||exp.cardId==="cash";
+      const amtColor=isCash?"#4facfe":cat.color;
+      return `<div class="list-item">
+        <div class="list-icon" style="background:${cat.color}20">${cat.icon}</div>
+        <div class="list-info">
+          <div class="list-name">${exp.note||cat.label}</div>
+          <div class="list-sub">${exp.date} · ${cat.label}${card?" · <span style='color:"+card.color+";font-weight:700'>"+card.name+"</span>":" · <span style='color:#4facfe;font-weight:700'>現金</span>"}</div>
+        </div>
+        <div class="list-val" style="color:${amtColor}">${yen(exp.amount)}</div>
+        <button class="icon-edit" onclick="showEditExpModal(${i})">✏️</button>
+        <button class="icon-del" onclick="delExp(${i})">✕</button>
+      </div>`;
+    }).join("")}`;
+}
+
+// ━━ カード ━━
+function renderCards(){
+  const {cardTotals} = calcTotals();
+  const cashTotal = state.exps.filter(e=>!e.cardId||e.cardId==="cash").reduce((s,e)=>s+e.amount,0);
+  const cashCount = state.exps.filter(e=>!e.cardId||e.cardId==="cash").length;
+
+  let cardList = state.cards.map(card=>{
+    const total=cardTotals[card.id]||0;
+    // 今月支払分（type:"payment"）と今月利用分（type:"usage"またはなし）に分ける
+    const paymentExps=state.exps.filter(e=>e.cardId===card.id&&e.cardType==="payment");
+    const usageExps=state.exps.filter(e=>e.cardId===card.id&&e.cardType!=="payment");
+    const paymentTotal=paymentExps.reduce((s,e)=>s+e.amount,0);
+    const usageTotal=usageExps.reduce((s,e)=>s+e.amount,0);
+
+    const renderItems=(exps)=>exps.slice(0,3).map(exp=>{
+      const cat=getCat(exp.categoryId);
+      return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+        <span style="font-size:14px">${cat.icon}</span>
+        <div style="flex:1;font-size:12px;color:#555">${exp.note||cat.label}</div>
+        <div style="font-size:11px;color:#aaa">${exp.date}</div>
+        <div style="font-weight:700;font-size:13px">${yen(exp.amount)}</div>
+      </div>`;
+    }).join("");
+
+    return `<div class="card" style="margin-bottom:12px">
+      <!-- カードヘッダー -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:48px;height:48px;border-radius:14px;background:${card.color}20;display:flex;align-items:center;justify-content:center;font-size:26px">${card.icon}</div>
+        <div style="flex:1"><div style="font-weight:800;font-size:15px;color:#333">${card.name}</div></div>
+        <div style="text-align:right">
+          <div style="font-weight:900;font-size:20px;color:${card.color}">${yen(total)}</div>
+          <div style="font-size:10px;color:#aaa">合計</div>
+        </div>
+      </div>
+
+      <!-- 今月支払分 -->
+      <div style="background:#fff8e1;border-radius:12px;padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;font-weight:700;color:#f57f17">💳 今月支払分（先月利用分）</span>
+          <span style="font-size:16px;font-weight:900;color:#f57f17">${yen(paymentTotal)}</span>
+        </div>
+        ${paymentExps.length>0?`<div style="border-top:1px solid #ffe082;padding-top:6px">${renderItems(paymentExps)}${paymentExps.length>3?`<div style="font-size:11px;color:#aaa;text-align:center;margin-top:4px">他${paymentExps.length-3}件</div>`:""}</div>`:`<div style="font-size:11px;color:#aaa">なし</div>`}
+      </div>
+
+      <!-- 今月利用分 -->
+      <div style="background:#e3f2fd;border-radius:12px;padding:10px 12px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;font-weight:700;color:#1565c0">💳 今月利用分（来月支払い）</span>
+          <span style="font-size:16px;font-weight:900;color:#1565c0">${yen(usageTotal)}</span>
+        </div>
+        ${usageExps.length>0?`<div style="border-top:1px solid #bbdefb;padding-top:6px">${renderItems(usageExps)}${usageExps.length>3?`<div style="font-size:11px;color:#aaa;text-align:center;margin-top:4px">他${usageExps.length-3}件</div>`:""}</div>`:`<div style="font-size:11px;color:#aaa">なし</div>`}
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button style="flex:1;background:#f0f7ff;color:#4facfe;border:none;border-radius:10px;padding:8px;font-weight:700;font-size:12px;cursor:pointer" onclick="showEditCardModal('${card.id}')">✏️ 編集</button>
+        <button style="background:#fff0f0;color:#ff6b6b;border:none;border-radius:10px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer" onclick="delCard('${card.id}')">✕ 削除</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  // カード全体の合計
+  const allCardTotal = state.cards.reduce((s,card)=>{
+    return s + state.exps.filter(e=>e.cardId===card.id).reduce((ss,e)=>ss+e.amount,0);
+  },0);
+  const allPaymentTotal = state.cards.reduce((s,card)=>{
+    return s + state.exps.filter(e=>e.cardId===card.id&&e.cardType==="payment").reduce((ss,e)=>ss+e.amount,0);
+  },0);
+  const allUsageTotal = state.cards.reduce((s,card)=>{
+    return s + state.exps.filter(e=>e.cardId===card.id&&e.cardType!=="payment").reduce((ss,e)=>ss+e.amount,0);
+  },0);
+
+  return `
+    <div class="row" style="margin-bottom:14px">
+      <div style="font-weight:800;font-size:16px;color:#333">カード別集計 💳</div>
+      <button class="btn btn-blue" onclick="showAddCardModal()">＋ 追加</button>
+    </div>
+
+    <!-- 全カード合計サマリー -->
+    <div class="gradient-card gradient-blue" style="margin-bottom:12px">
+      <div class="gc-label">💳 カード合計（今月）</div>
+      <div class="gc-val">${yen(allCardTotal)}</div>
+      <div class="divider-white"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <div style="text-align:center">
+          <div style="font-size:10px;color:rgba(255,255,255,0.8)">今月支払分</div>
+          <div style="font-size:18px;font-weight:900;color:#ffe082">${yen(allPaymentTotal)}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;color:rgba(255,255,255,0.8)">今月利用分</div>
+          <div style="font-size:18px;font-weight:900;color:#fff">${yen(allUsageTotal)}</div>
+        </div>
+      </div>
+    </div>
+    ${cardList}`;
+}
+
+// ━━ 口座 ━━
+function renderAccounts(){
+  if(!state.emoney) state.emoney = [];
+  // 電子マネー合計
+  const emoneyTotal = state.emoney.reduce((s,e)=>s+e.balance,0);
+  // 口座合計（節約お楽しみ貯金は別管理なので含める・電子マネーも手元として含める）
+  const total = state.accounts.reduce((s,a)=>s+a.balance,0) + emoneyTotal;
+
+  // 手元現金カードは電子マネー内訳も表示
+  let list = state.accounts.map((acc,i)=>{
+    const isCash = acc.id==="cash";
+    const cashTotal = isCash ? acc.balance + emoneyTotal : acc.balance;
+    return `<div class="card">
+      <div class="row">
+        <div style="display:flex;align-items:center;gap:12px;flex:1">
+          <div style="width:48px;height:48px;border-radius:14px;background:${acc.color}20;display:flex;align-items:center;justify-content:center;font-size:26px">${acc.icon}</div>
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:15px;color:#333">${acc.name}${isCash?" （電子マネー含む）":""}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+              <span style="font-size:13px;color:#aaa">¥</span>
+              <input type="number" value="${acc.balance||""}" placeholder="0"
+                style="width:120px;padding:5px 8px;border-radius:8px;border:1.5px solid #e8f4fd;font-size:16px;font-weight:900;color:${acc.color};outline:none"
+                oninput="updateAccount(${i},this.value)"/>
+              <span style="font-size:12px;color:#aaa">円</span>
+            </div>
+            ${isCash&&emoneyTotal>0?`<div style="font-size:11px;color:#e53935;margin-top:4px">うち電子マネー: ${yen(emoneyTotal)}</div>`:""}
+          </div>
+        </div>
+        <div style="text-align:right">
+          ${isCash?`<div style="font-weight:900;font-size:18px;color:${acc.color}">${yen(cashTotal)}</div><div style="font-size:10px;color:#aaa">手元合計</div>`:""}
+        </div>
+        <button class="icon-del" onclick="delAccount('${acc.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `
+    <div class="row" style="margin-bottom:14px">
+      <div><div style="font-weight:800;font-size:16px;color:#333">口座残高 🏦</div><div style="font-size:12px;color:#aaa;margin-top:2px">電子マネー含む合計</div></div>
+      <button class="btn btn-blue" onclick="showAddAccModal()">＋ 追加</button>
+    </div>
+    <div class="gradient-card gradient-blue">
+      <div class="gc-label">手元・口座・電子マネーの合計</div>
+      <div class="gc-val">${yen(total)}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px">
+        <span style="font-size:11px;color:rgba(255,255,255,0.8)">口座: ${yen(state.accounts.reduce((s,a)=>s+a.balance,0))}</span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.8)">電子マネー: ${yen(emoneyTotal)}</span>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px">※節約お楽しみ貯金は別管理</div>
+    </div>
+    ${list}`;
+}
+
+function bindAccountInputs(){}
+
+// ━━ 電子マネー ━━
+function renderEmoney(){
+  if(!state.emoney) state.emoney = [];
+  const emoneyTotal = state.emoney.reduce((s,e)=>s+e.balance,0);
+  let list = state.emoney.map((em,i)=>`
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:48px;height:48px;border-radius:14px;background:${em.color}20;display:flex;align-items:center;justify-content:center;font-size:26px">${em.icon}</div>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:15px;color:#333">${em.name}</div>
+          <div style="font-size:12px;color:#aaa;margin-top:2px">現在の残高</div>
+        </div>
+        <div style="font-weight:900;font-size:24px;color:${em.color}">${yen(em.balance)}</div>
+      </div>
+      <!-- 残高直接編集 -->
+      <div style="background:#f8f8f8;border-radius:12px;padding:10px 12px;margin-bottom:10px">
+        <div style="font-size:11px;color:#888;font-weight:700;margin-bottom:6px">✏️ 残高を直接修正する</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:13px;color:#aaa">¥</span>
+          <input type="number" id="emoneyInput_${i}" value="${em.balance||""}" placeholder="0"
+            style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #e8f4fd;font-size:18px;font-weight:900;color:${em.color};outline:none"/>
+          <span style="font-size:12px;color:#aaa">円</span>
+        </div>
+        <button onclick="updateEmoneyDirect(${i})" style="width:100%;margin-top:8px;padding:8px;background:#4facfe;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">✅ 残高を確定する</button>
+        <div style="font-size:11px;color:#aaa;margin-top:6px">💡 実際の残高と合わない時はここで直接修正できます</div>
+      </div>
+      <!-- チャージボタン -->
+      <button style="width:100%;background:linear-gradient(135deg,#e53935,#ff7043);color:#fff;border:none;border-radius:10px;padding:10px;font-weight:700;font-size:13px;cursor:pointer" onclick="showAddEmoneyModal(${i})">💳 チャージ（入金）する</button>
+    </div>`).join("");
+
+  return `
+    <div style="font-weight:800;font-size:16px;color:#333;margin-bottom:14px">電子マネー 💳</div>
+    <div class="gradient-card" style="background:linear-gradient(135deg,#e53935,#ff7043);box-shadow:0 4px 16px rgba(229,57,53,0.3);border-radius:20px;padding:16px 20px;margin-bottom:14px">
+      <div class="gc-label">電子マネー合計残高</div>
+      <div class="gc-val">${yen(emoneyTotal)}</div>
+      <div style="color:rgba(255,255,255,0.8);font-size:11px;margin-top:6px">💡 入金→残高が増える　買い物→支出追加で電子マネーを選ぶと残高が減る</div>
+    </div>
+    ${list}`;
+}
+
+function updateEmoney(idx,val){
+  state.emoney[idx].balance=parseInt(val)||0;
+  saveAll(); updateHeader();
+}
+
+function updateEmoneyDirect(idx){
+  const input=document.getElementById("emoneyInput_"+idx);
+  if(!input)return;
+  state.emoney[idx].balance=parseInt(input.value)||0;
+  saveAll(); updateHeader(); renderPage("emoney");
+}
+
+let _chargeFromId="cash";
+function showAddEmoneyModal(idx){
+  const em=state.emoney[idx];
+  // チャージ元の選択肢（口座＋手元現金）
+  const fromChips=`<button class="chip" id="charge_cash" onclick="selectChargeFrom('cash')" style="background:#555;color:#fff">💴 手元現金</button>`
+    +state.accounts.filter(a=>a.id!=="cash").map(a=>`<button class="chip" id="charge_${a.id}" onclick="selectChargeFrom('${a.id}')" style="background:#f5f5f5;color:#555">${a.icon} ${a.name}</button>`).join("");
+
+  openModal(`💳 ${em.name}にチャージ`,`
+    <div style="background:#fff3e0;border-radius:12px;padding:12px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:36px">${em.icon}</span>
+        <div>
+          <div style="font-weight:800;font-size:15px;color:#333">${em.name}</div>
+          <div style="font-size:13px;color:#e65100;font-weight:700">現在の残高: ${yen(em.balance)}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#888;margin-top:8px">💡 お金の移動のみ・支出にはなりません</div>
+    </div>
+    <div class="field"><div class="field-label">チャージ元（どこから移しますか？）</div>
+      <div class="chip-group" id="chargeFromGroup">${fromChips}</div>
+    </div>
+    <div class="field"><div class="field-label">チャージ金額</div>
+      <div style="position:relative"><span class="field-prefix" style="color:#e53935">¥</span>
+      <input type="number" id="emoneyAmt" placeholder="0" class="field-input-lg"/></div>
+    </div>
+  `,"チャージする",()=>{
+    const amt=parseInt(document.getElementById("emoneyAmt").value);
+    if(!amt||amt<=0)return;
+    // 電子マネー残高を増やす
+    state.emoney[idx].balance+=amt;
+    // チャージ元の残高を減らす
+    if(_chargeFromId==="cash"){
+      const cashAcc=state.accounts.find(a=>a.id==="cash");
+      if(cashAcc)cashAcc.balance-=amt;
+    } else {
+      state.accounts=state.accounts.map(a=>a.id===_chargeFromId?{...a,balance:a.balance-amt}:a);
+    }
+    saveAll(); closeModal(); renderPage("emoney");
+  });
+  // 初期選択
+  setTimeout(()=>selectChargeFrom("cash"),50);
+}
+
+function selectChargeFrom(id){
+  _chargeFromId=id;
+  document.querySelectorAll("#chargeFromGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});
+  const btn=document.getElementById("charge_"+id);
+  if(btn){btn.style.background="#555";btn.style.color="#fff";}
+}
+
+
+function updateAccount(idx,val){
+  state.accounts[idx].balance=parseInt(val)||0;
+  saveAll(); updateHeader();
+}
+
+// ━━ 貯金 ━━（⑤節約お楽しみ貯金）
+function renderSavings(){
+  const {remaining} = calcTotals();
+  let hist = state.savHist.length===0
+    ? `<div class="empty"><div class="empty-icon">🌱</div><div class="empty-text">節約お楽しみ貯金で積み上がります！</div></div>`
+    : state.savHist.map(h=>`
+      <div class="list-item">
+        <span style="font-size:28px">🌿</span>
+        <div class="list-info"><div class="list-name">${h.label}</div><div class="list-sub">${h.date}</div></div>
+        <div class="list-val" style="color:#ff8c00">＋${yen(h.amount)}</div>
+      </div>`).join("");
+  return `
+    <div style="font-weight:800;font-size:16px;color:#333;margin-bottom:14px">🌸 節約お楽しみ貯金</div>
+    <div class="card" style="border:2px solid #ff8c00;margin-bottom:12px">
+      <div style="font-size:12px;color:#aaa;font-weight:700">💰 今月の変動費残金（月末に貯金へ）</div>
+      <div style="font-weight:900;font-size:32px;color:${remaining>0?'#ff8c00':'#ff6b6b'};margin-top:4px">${yen(remaining)}</div>
+      <div style="font-size:11px;color:#aaa;margin-top:4px">節約お楽しみ貯金ボタンを押すと追加されます</div>
+    </div>
+    <div class="gradient-card gradient-orange">
+      <div style="color:#fff;font-size:13px;font-weight:700">🌸 節約お楽しみ貯金</div>
+      <div style="color:#fff;font-weight:900;font-size:40px;line-height:1.1;margin-top:4px">${yen(state.savings)}</div>
+      <div style="color:rgba(255,255,255,0.85);font-size:12px;margin-top:6px">今月分が加わると合計 <strong>${yen(state.savings+Math.max(0,remaining))}</strong> 🌱</div>
+    </div>
+    ${hist}`;
+}
+
+// ━━ 設定 ━━
+function renderSettings(){
+  const {totalCatBudget} = calcTotals();
+  let catList = state.cats.map((cat,idx)=>`
+    <div class="divider">
+      <div class="row" style="padding:10px 0;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <button style="background:none;border:none;font-size:12px;cursor:pointer;padding:1px 4px;color:${idx===0?'#ddd':'#4facfe'}" onclick="moveCat(${idx},-1)" ${idx===0?"disabled":""}>▲</button>
+          <button style="background:none;border:none;font-size:12px;cursor:pointer;padding:1px 4px;color:${idx===state.cats.length-1?'#ddd':'#4facfe'}" onclick="moveCat(${idx},1)" ${idx===state.cats.length-1?"disabled":""}>▼</button>
+        </div>
+        <div style="width:38px;height:38px;border-radius:10px;background:${cat.color}25;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid ${cat.color}">${cat.icon}</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:13px;color:#333">${cat.label}</div><div style="font-size:11px;color:#aaa">予算: ${cat.budget>0?yen(cat.budget):"未設定"}</div></div>
+        <button style="background:#f0f7ff;border:none;color:#4facfe;font-size:12px;border-radius:8px;padding:5px 10px;cursor:pointer;font-weight:700" onclick="showEditCatModal(${idx})">✏️ 編集</button>
+        <button style="background:none;border:none;color:#ffaaaa;font-size:18px;cursor:pointer;padding:2px 4px" onclick="delCat('${cat.id}')">✕</button>
+      </div>
+    </div>`).join("");
+
+  return `
+    <div style="font-weight:800;font-size:16px;color:#333;margin-bottom:14px">設定 ⚙️</div>
+    <div class="setting-section">
+      <div class="card-title" style="margin-bottom:12px">🔑 パスワード変更</div>
+      <input type="password" id="pwNew1" placeholder="新しいパスワード（6文字以上）" class="field-input" style="margin-bottom:8px"/>
+      <input type="password" id="pwNew2" placeholder="もう一度入力" class="field-input" style="margin-bottom:8px"/>
+      <div id="pwMsg" class="pw-msg"></div>
+      <button class="btn-full btn-blue" style="border-radius:12px;padding:11px;font-size:14px;" onclick="changePw()">変更する</button>
+    </div>
+    <button class="btn-full btn-gray" style="margin-bottom:12px;border-radius:16px;" onclick="doLogout()">🚪 ログアウト</button>
+    <div class="setting-section">
+      <div class="card-title">📅 変動費の月予算（自動集計）</div>
+      <div style="font-size:11px;color:#aaa;margin:4px 0 8px">カテゴリーの予算を変更すると自動で更新されます</div>
+      <div style="font-weight:900;font-size:26px;color:#4facfe">${yen(totalCatBudget)}</div>
+    </div>
+    <div class="setting-section">
+      <div class="card-title" style="margin-bottom:14px">🏷️ カテゴリー管理（変動費）</div>
+      ${catList}
+      <div style="margin-top:16px;padding-top:16px;border-top:2px dashed #e8f4fd">
+        <div style="font-weight:700;font-size:13px;color:#4facfe;margin-bottom:10px">＋ 新しいカテゴリーを追加</div>
+        <button class="btn-full btn-blue" style="border-radius:12px;padding:12px;font-size:14px;" onclick="showAddCatModal()">カテゴリーを追加する</button>
+      </div>
+    </div>`;
+}
+
+function changePw(){
+  const p1=document.getElementById("pwNew1").value;
+  const p2=document.getElementById("pwNew2").value;
+  const msg=document.getElementById("pwMsg");
+  if(!p1){msg.style.color="#ff6b6b";msg.textContent="入力してください";return;}
+  if(p1.length<6){msg.style.color="#ff6b6b";msg.textContent="6文字以上にしてください";return;}
+  if(p1!==p2){msg.style.color="#ff6b6b";msg.textContent="パスワードが一致しません";return;}
+  ss("kk_pw",p1);
+  msg.style.color="#43e97b";msg.textContent="✅ 変更しました！";
+  document.getElementById("pwNew1").value="";
+  document.getElementById("pwNew2").value="";
+}
+
+function doLogout(){
+  document.getElementById("mainApp").style.display="none";
+  document.getElementById("loginPage").style.display="flex";
+  document.getElementById("pwInput").value="";
+  document.getElementById("loginErr").textContent="";
+}
+
+// ━━ データ操作 ━━
+function delExp(idx){ state.exps.splice(idx,1); saveAll(); renderPage("history"); }
+function delIncome(idx){ state.incomes.splice(idx,1); saveAll(); renderPage("income"); }
+function delFixed(idx){ state.fixed.splice(idx,1); saveAll(); renderPage("fixed"); }
+function delCard(id){ state.cards=state.cards.filter(c=>c.id!==id); state.exps=state.exps.map(e=>e.cardId===id?{...e,cardId:"cash"}:e); saveAll(); renderPage("cards"); }
+function delAccount(id){ state.accounts=state.accounts.filter(a=>a.id!==id); saveAll(); renderPage("accounts"); }
+function delCat(id){
+  if(state.cats.length<=1)return;
+  state.cats=state.cats.filter(c=>c.id!==id);
+  state.exps=state.exps.map(e=>e.categoryId===id?{...e,categoryId:"other"}:e);
+  saveAll(); renderPage("settings");
+}
+function moveFixed(idx,dir){
+  const a=state.fixed,ni=idx+dir;
+  if(ni<0||ni>=a.length)return;
+  [a[idx],a[ni]]=[a[ni],a[idx]];
+  saveAll(); renderPage("fixed");
+}
+function moveCat(idx,dir){
+  const a=state.cats,ni=idx+dir;
+  if(ni<0||ni>=a.length)return;
+  [a[idx],a[ni]]=[a[ni],a[idx]];
+  saveAll(); renderPage("settings");
+}
+
+// ━━ モーダル管理 ━━
+let modalSaveFn = null;
+function openModal(title,bodyHTML,saveBtnLabel,saveFn,danger=false){
+  document.getElementById("modalTitle").textContent=title;
+  document.getElementById("modalBody").innerHTML=bodyHTML;
+  const btn=document.getElementById("modalSaveBtn");
+  btn.textContent=saveBtnLabel||"保存する";
+  btn.style.background=danger?"linear-gradient(135deg,#ff6b6b,#ff4444)":"linear-gradient(135deg,#4facfe,#00c9ff)";
+  modalSaveFn=saveFn;
+  document.getElementById("modal").classList.add("open");
+}
+function closeModal(){ document.getElementById("modal").classList.remove("open"); modalSaveFn=null; }
+function modalSave(){ if(modalSaveFn)modalSaveFn(); }
+
+function iconPickerHTML(id,selectedIcon,icons){
+  return `<div class="icon-picker" id="${id}">
+    ${icons.map(ic=>`<button class="icon-btn ${ic===selectedIcon?'selected':''}" onclick="selectIcon('${id}','${ic}',this)">${ic}</button>`).join("")}
+  </div>`;
+}
+function selectIcon(containerId,icon,btn){
+  document.querySelectorAll(`#${containerId} .icon-btn`).forEach(b=>b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+function getSelectedIcon(containerId){
+  const btn=document.querySelector(`#${containerId} .icon-btn.selected`);
+  return btn?btn.textContent:"";
+}
+function colorPickerHTML(id,selectedColor,colors){
+  return `<div class="color-picker" id="${id}">
+    ${colors.map(c=>`<button class="color-btn ${c===selectedColor?'selected':''}" style="background:${c}" onclick="selectColor('${id}','${c}',this)"></button>`).join("")}
+  </div>`;
+}
+function selectColor(containerId,color,btn){
+  document.querySelectorAll(`#${containerId} .color-btn`).forEach(b=>b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+function getSelectedColor(containerId){
+  const btn=document.querySelector(`#${containerId} .color-btn.selected`);
+  return btn?btn.style.background:"#aaa";
+}
+
+// ━━ 支出追加（⑦日付を前回のまま維持・⑨カード選択）━━
+function showAddExpModal(){
+  const catChips=state.cats.map(c=>`<button class="chip" id="expCat_${c.id}" onclick="selectExpCat('${c.id}')" style="background:#f5f5f5;color:#555">${c.icon} ${c.label}</button>`).join("");
+  // ⑨ カード選択（現金含む）
+  const cardChips=`<button class="chip" id="expCard_cash" onclick="selectExpCard('cash')" style="background:#555;color:#fff">💴 現金</button>`
+    +state.cards.map(c=>`<button class="chip" id="expCard_${c.id}" onclick="selectExpCard('${c.id}')" style="background:#f5f5f5;color:#555">${c.icon} ${c.name}</button>`).join("")
+    +state.emoney.map(e=>`<button class="chip" id="expCard_em_${e.id}" onclick="selectExpCard('em_${e.id}')" style="background:#f5f5f5;color:#555">${e.icon} ${e.name}</button>`).join("");
+
+  // ⑦ 前回の日付を初期値に
+  const initDate = state.lastExpDate || today();
+
+  openModal("支出を追加",`
+    <div class="field"><div class="field-label">金額</div>
+      <div style="position:relative"><span class="field-prefix" style="color:#4facfe">¥</span>
+      <input type="number" id="expAmount" placeholder="0" class="field-input-lg" autofocus/></div>
+    </div>
+    <div class="field"><div class="field-label">カテゴリー</div><div class="chip-group" id="expCatGroup">${catChips}</div></div>
+    <div class="field"><div class="field-label">💳 支払い方法</div><div class="chip-group" id="expCardGroup">${cardChips}</div></div>
+    <div class="field" id="cardTypeField" style="display:none">
+      <div class="field-label">カード種別</div>
+      <div class="chip-group">
+        <button class="chip" id="cardType_usage" onclick="selectCardType('usage')" style="background:#1565c0;color:#fff">💳 今月利用分（来月払い）</button>
+        <button class="chip" id="cardType_payment" onclick="selectCardType('payment')" style="background:#f5f5f5;color:#555">💳 今月支払分（先月分）</button>
+      </div>
+    </div>
+    <div class="field"><div class="field-label">メモ（任意）</div><input type="text" id="expNote" placeholder="例: スーパーで買い物" class="field-input"/></div>
+    <div class="field"><div class="field-label">日付 <button onclick="document.getElementById('expDate').value=today()" style="background:#f0f7ff;border:none;color:#4facfe;font-size:11px;border-radius:6px;padding:2px 8px;cursor:pointer;font-weight:700;margin-left:8px">📅 今日に戻す</button></div><input type="date" id="expDate" value="${initDate}" class="field-input"/></div>
+  `,"追加する",addExp);
+  selectExpCat(state.cats[0].id);
+  selectExpCard(_expCardId||"cash");
+}
+
+let _expCatId="food",_expCardId="cash";
+function selectExpCat(id){
+  _expCatId=id;
+  document.querySelectorAll("#expCatGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});
+  const cat=state.cats.find(c=>c.id===id),btn=document.getElementById("expCat_"+id);
+  if(btn&&cat){btn.style.background=cat.color;btn.style.color="#fff";}
+}
+let _cardType="usage";
+function selectExpCard(id){
+  _expCardId=id;
+  document.querySelectorAll("#expCardGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});
+  const btn=document.getElementById("expCard_"+id);
+  if(btn){btn.style.background=(id==="cash"?"#555":getCard(id).color);btn.style.color="#fff";}
+  // カードの場合はカード種別フィールドを表示
+  const typeField=document.getElementById("cardTypeField");
+  if(typeField){
+    const isCard=id!=="cash"&&!id.startsWith("em_");
+    typeField.style.display=isCard?"block":"none";
+  }
+}
+function selectCardType(type){
+  _cardType=type;
+  document.getElementById("cardType_usage").style.background=type==="usage"?"#1565c0":"#f5f5f5";
+  document.getElementById("cardType_usage").style.color=type==="usage"?"#fff":"#555";
+  document.getElementById("cardType_payment").style.background=type==="payment"?"#f57f17":"#f5f5f5";
+  document.getElementById("cardType_payment").style.color=type==="payment"?"#fff":"#555";
+}
+function addExp(){
+  const amt=parseInt(document.getElementById("expAmount").value);
+  if(!amt||amt<=0)return;
+  const note=document.getElementById("expNote").value;
+  const date=document.getElementById("expDate").value||today();
+  // ⑦ 日付を記憶
+  state.lastExpDate=date;
+  ss("kk_lastExpDate",date);
+  const cardType=(_expCardId&&_expCardId!=="cash"&&!_expCardId.startsWith("em_"))?_cardType:"usage";
+  state.exps.unshift({id:Date.now(),amount:amt,categoryId:_expCatId,cardId:_expCardId,cardType,note,date});
+  // 電子マネーで支払った場合は残高から自動引き落とし
+  if(_expCardId && _expCardId.startsWith("em_")){
+    const emId=_expCardId.replace("em_","");
+    state.emoney=state.emoney.map(e=>e.id===emId?{...e,balance:e.balance-amt}:e);
+  }
+  saveAll(); closeModal(); renderPage(state.tab);
+}
+
+// ━━ 支出編集（①履歴編集）━━
+function showEditExpModal(idx){
+  const exp=state.exps[idx];
+  const catChips=state.cats.map(c=>`<button class="chip" id="expECat_${c.id}" onclick="selectExpECat('${c.id}')" style="background:${exp.categoryId===c.id?state.cats.find(x=>x.id===c.id).color:'#f5f5f5'};color:${exp.categoryId===c.id?'#fff':'#555'}">${c.icon} ${c.label}</button>`).join("");
+  const cardChips=`<button class="chip" id="expECard_cash" onclick="selectExpECard('cash')" style="background:${exp.cardId==='cash'||!exp.cardId?'#555':'#f5f5f5'};color:${exp.cardId==='cash'||!exp.cardId?'#fff':'#555'}">💴 現金</button>`
+    +state.cards.map(c=>`<button class="chip" id="expECard_${c.id}" onclick="selectExpECard('${c.id}')" style="background:${exp.cardId===c.id?c.color:'#f5f5f5'};color:${exp.cardId===c.id?'#fff':'#555'}">${c.icon} ${c.name}</button>`).join("");
+  _expECatId=exp.categoryId; _expECardId=exp.cardId||"cash";
+
+  openModal("支出を編集",`
+    <div class="field"><div class="field-label">金額</div>
+      <div style="position:relative"><span class="field-prefix" style="color:#4facfe">¥</span>
+      <input type="number" id="expEAmount" value="${exp.amount}" class="field-input-lg"/></div>
+    </div>
+    <div class="field"><div class="field-label">カテゴリー</div><div class="chip-group" id="expECatGroup">${catChips}</div></div>
+    <div class="field"><div class="field-label">💳 支払い方法</div><div class="chip-group" id="expECardGroup">${cardChips}</div></div>
+    <div class="field"><div class="field-label">メモ（任意）</div><input type="text" id="expENote" value="${exp.note||''}" placeholder="例: スーパーで買い物" class="field-input"/></div>
+    <div class="field"><div class="field-label">日付</div><input type="date" id="expEDate" value="${exp.date}" class="field-input"/></div>
+  `,"保存する",()=>{
+    const amt=parseInt(document.getElementById("expEAmount").value);
+    if(!amt||amt<=0)return;
+    state.exps[idx]={...exp,amount:amt,categoryId:_expECatId,cardId:_expECardId,note:document.getElementById("expENote").value,date:document.getElementById("expEDate").value||exp.date};
+    saveAll(); closeModal(); renderPage("history");
+  });
+}
+let _expECatId="food",_expECardId="cash";
+function selectExpECat(id){
+  _expECatId=id;
+  document.querySelectorAll("#expECatGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});
+  const cat=state.cats.find(c=>c.id===id),btn=document.getElementById("expECat_"+id);
+  if(btn&&cat){btn.style.background=cat.color;btn.style.color="#fff";}
+}
+function selectExpECard(id){
+  _expECardId=id;
+  document.querySelectorAll("#expECardGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});
+  const btn=document.getElementById("expECard_"+id);
+  if(btn){btn.style.background=(id==="cash"?"#555":getCard(id).color);btn.style.color="#fff";}
+}
+
+// ━━ 収入追加/編集 ━━
+function showAddIncModal(){
+  openModal("収入を追加",`
+    <div class="field"><div class="field-label">アイコン</div>${iconPickerHTML("incIcon","💴",INC_ICONS)}</div>
+    <div class="field"><div class="field-label">収入名</div><input type="text" id="incLabel" placeholder="例: 給与・副収入・ボーナス" class="field-input"/></div>
+    <div class="field"><div class="field-label">金額</div>
+      <div style="position:relative"><span class="field-prefix" style="color:#ff8c00">¥</span>
+      <input type="number" id="incAmount" placeholder="0" class="field-input-lg"/></div>
+    </div>
+    <div class="field"><div class="field-label">メモ（任意）</div><input type="text" id="incNote" placeholder="例: 〇月分" class="field-input"/></div>
+    <div class="field"><div class="field-label">日付</div><input type="date" id="incDate" value="${today()}" class="field-input"/></div>
+  `,"追加する",()=>{
+    const amt=parseInt(document.getElementById("incAmount").value);
+    const label=document.getElementById("incLabel").value.trim();
+    if(!amt||amt<=0||!label)return;
+    const icon=getSelectedIcon("incIcon")||"💴";
+    state.incomes.unshift({id:Date.now(),icon,label,amount:amt,note:document.getElementById("incNote").value,date:document.getElementById("incDate").value||today()});
+    saveAll(); closeModal(); renderPage("income");
+  });
+}
+
+function showEditIncModal(idx){
+  const inc=state.incomes[idx];
+  openModal("収入を編集",`
+    <div class="field"><div class="field-label">アイコン</div>${iconPickerHTML("incEditIcon",inc.icon,INC_ICONS)}</div>
+    <div class="field"><input type="text" id="incEditLabel" value="${inc.label}" class="field-input" style="border-color:#ff8c00"/></div>
+    <div class="field"><div style="position:relative"><span class="field-prefix" style="color:#ff8c00">¥</span>
+      <input type="number" id="incEditAmount" value="${inc.amount}" class="field-input-lg"/></div>
+    </div>
+    <div class="field"><input type="text" id="incEditNote" value="${inc.note||''}" placeholder="メモ" class="field-input"/></div>
+    <div class="field"><input type="date" id="incEditDate" value="${inc.date}" class="field-input"/></div>
+  `,"保存する",()=>{
+    const amt=parseInt(document.getElementById("incEditAmount").value);
+    const label=document.getElementById("incEditLabel").value.trim();
+    if(!amt||!label)return;
+    state.incomes[idx]={...inc,icon:getSelectedIcon("incEditIcon")||inc.icon,label,amount:amt,note:document.getElementById("incEditNote").value,date:document.getElementById("incEditDate").value||inc.date};
+    saveAll(); closeModal(); renderPage("income");
+  });
+}
+
+// ━━ 固定費追加/編集（①固定費専用カテゴリー）━━
+function showAddFixedModal(){
+  const catChips=FIXED_CATS.map(c=>`<button class="chip" id="fixCat_${c.id}" onclick="selectFixCat('${c.id}')" style="background:#f5f5f5;color:#555">${c.icon} ${c.label}</button>`).join("");
+  const cardChips=`<button class="chip" id="fixCard_cash" onclick="selectFixCard('cash')" style="background:#555;color:#fff">💴 現金</button>`
+    +state.cards.map(c=>`<button class="chip" id="fixCard_${c.id}" onclick="selectFixCard('${c.id}')" style="background:#f5f5f5;color:#555">${c.icon} ${c.name}</button>`).join("");
+
+  openModal("固定費を追加",`
+    <div class="field"><div class="field-label">アイコン</div>${iconPickerHTML("fixIcon","🏠",FIX_ICONS)}</div>
+    <div class="field"><input type="text" id="fixName" placeholder="名前（例：家賃・電気代・Netflix）" class="field-input"/></div>
+    <div class="field"><div style="position:relative"><span class="field-prefix" style="color:#667eea">¥</span>
+      <input type="number" id="fixAmount" placeholder="金額" class="field-input-lg"/></div>
+    </div>
+    <div class="field"><div class="field-label">カテゴリー</div><div class="chip-group" id="fixCatGroup">${catChips}</div></div>
+    <div class="field"><div class="field-label">支払い方法</div><div class="chip-group" id="fixCardGroup">${cardChips}</div></div>
+  `,"追加する",addFixed);
+  selectFixCat(FIXED_CATS[0].id); selectFixCard("cash");
+}
+
+let _fixCatId=FIXED_CATS[0].id,_fixCardId="cash";
+function selectFixCat(id){
+  _fixCatId=id;
+  document.querySelectorAll("#fixCatGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});
+  const cat=FIXED_CATS.find(c=>c.id===id),btn=document.getElementById("fixCat_"+id);
+  if(btn&&cat){btn.style.background=cat.color;btn.style.color="#fff";}
+}
+function selectFixCard(id){
+  _fixCardId=id;
+  document.querySelectorAll("#fixCardGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});
+  const btn=document.getElementById("fixCard_"+id);
+  if(btn){btn.style.background=(id==="cash"?"#555":getCard(id).color);btn.style.color="#fff";}
+}
+function addFixed(){
+  const amt=parseInt(document.getElementById("fixAmount").value);
+  const name=document.getElementById("fixName").value.trim();
+  if(!amt||amt<=0||!name)return;
+  const icon=getSelectedIcon("fixIcon")||"🏠";
+  state.fixed.push({id:Date.now(),icon,name,amount:amt,categoryId:_fixCatId,cardId:_fixCardId});
+  saveAll(); closeModal(); renderPage("fixed");
+}
+
+function showEditFixedModal(idx){
+  const f=state.fixed[idx];
+  const catChips=FIXED_CATS.map(c=>`<button class="chip" id="fixECat_${c.id}" onclick="selectFixECat('${c.id}')" style="background:${f.categoryId===c.id?c.color:'#f5f5f5'};color:${f.categoryId===c.id?'#fff':'#555'}">${c.icon} ${c.label}</button>`).join("");
+  const cardChips=`<button class="chip" id="fixECard_cash" onclick="selectFixECard('cash')" style="background:${f.cardId==='cash'||!f.cardId?'#555':'#f5f5f5'};color:${f.cardId==='cash'||!f.cardId?'#fff':'#555'}">💴 現金</button>`
+    +state.cards.map(c=>`<button class="chip" id="fixECard_${c.id}" onclick="selectFixECard('${c.id}')" style="background:${f.cardId===c.id?c.color:'#f5f5f5'};color:${f.cardId===c.id?'#fff':'#555'}">${c.icon} ${c.name}</button>`).join("");
+  _fixECatId=f.categoryId||FIXED_CATS[0].id; _fixECardId=f.cardId||"cash";
+
+  openModal("固定費を編集",`
+    <div class="field"><div class="field-label">アイコン</div>${iconPickerHTML("fixEIcon",f.icon||"🏠",FIX_ICONS)}</div>
+    <div class="field"><input type="text" id="fixEName" value="${f.name}" class="field-input" style="border-color:#667eea"/></div>
+    <div class="field"><div style="position:relative"><span class="field-prefix" style="color:#667eea">¥</span>
+      <input type="number" id="fixEAmount" value="${f.amount}" class="field-input-lg"/></div>
+    </div>
+    <div class="field"><div class="field-label">カテゴリー</div><div class="chip-group" id="fixECatGroup">${catChips}</div></div>
+    <div class="field"><div class="field-label">支払い方法</div><div class="chip-group" id="fixECardGroup">${cardChips}</div></div>
+  `,"保存する",()=>{
+    const amt=parseInt(document.getElementById("fixEAmount").value);
+    const name=document.getElementById("fixEName").value.trim();
+    if(!amt||!name)return;
+    state.fixed[idx]={...f,icon:getSelectedIcon("fixEIcon")||f.icon||"🏠",name,amount:amt,categoryId:_fixECatId,cardId:_fixECardId};
+    saveAll(); closeModal(); renderPage("fixed");
+  });
+}
+let _fixECatId=FIXED_CATS[0].id,_fixECardId="cash";
+function selectFixECat(id){_fixECatId=id;document.querySelectorAll("#fixECatGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});const cat=FIXED_CATS.find(c=>c.id===id),btn=document.getElementById("fixECat_"+id);if(btn&&cat){btn.style.background=cat.color;btn.style.color="#fff";}}
+function selectFixECard(id){_fixECardId=id;document.querySelectorAll("#fixECardGroup .chip").forEach(b=>{b.style.background="#f5f5f5";b.style.color="#555";});const btn=document.getElementById("fixECard_"+id);if(btn){btn.style.background=(id==="cash"?"#555":getCard(id).color);btn.style.color="#fff";}}
+
+// ━━ カテゴリー追加/編集 ━━
+function showAddCatModal(){
+  openModal("カテゴリーを追加",`
+    <div class="field"><div class="field-label">🎨 アイコンを選ぶ</div>${iconPickerHTML("catIcon","🌸",ICONS)}</div>
+    <div class="field"><div class="field-label">🎨 カラーを選ぶ</div>${colorPickerHTML("catColor","#ff8c69",CAT_COLORS)}</div>
+    <div class="field"><input type="text" id="catLabel" placeholder="カテゴリー名" class="field-input"/></div>
+    <div class="field"><div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:#888;font-weight:700;white-space:nowrap">予算 ¥</span>
+      <input type="number" id="catBudget" placeholder="0" value="5000" class="field-input"/>
+    </div></div>
+  `,"追加する",()=>{
+    const label=document.getElementById("catLabel").value.trim();
+    if(!label)return;
+    const icon=getSelectedIcon("catIcon")||"🌸";
+    const color=getSelectedColor("catColor")||"#ff8c69";
+    const budget=parseInt(document.getElementById("catBudget").value)||0;
+    state.cats.push({id:"cat_"+Date.now(),icon,label,color,budget});
+    saveAll(); closeModal(); renderPage("settings");
+  });
+}
+
+function showEditCatModal(idx){
+  const cat=state.cats[idx];
+  openModal("カテゴリーを編集",`
+    <div style="display:flex;align-items:center;gap:8px;border-radius:12px;padding:10px 14px;margin-bottom:12px;border:2px solid ${cat.color};background:${cat.color}20">
+      <span style="font-size:28px">${cat.icon}</span>
+      <div><div style="font-weight:800;font-size:15px;color:${cat.color}">${cat.label}</div><div style="font-size:11px;color:#888">プレビュー</div></div>
+    </div>
+    <div class="field"><div class="field-label">🎨 アイコンを選ぶ</div>${iconPickerHTML("catEditIcon",cat.icon,ICONS)}</div>
+    <div class="field"><div class="field-label">🎨 カラーを選ぶ</div>${colorPickerHTML("catEditColor",cat.color,CAT_COLORS)}</div>
+    <div class="field"><input type="text" id="catEditLabel" value="${cat.label}" class="field-input" style="border-color:#4facfe"/></div>
+    <div class="field"><div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:#888;font-weight:700;white-space:nowrap">予算 ¥</span>
+      <input type="number" id="catEditBudget" value="${cat.budget||0}" class="field-input"/>
+    </div></div>
+  `,"✅ 保存する",()=>{
+    const label=document.getElementById("catEditLabel").value.trim();
+    if(!label)return;
+    const icon=getSelectedIcon("catEditIcon")||cat.icon;
+    const color=getSelectedColor("catEditColor")||cat.color;
+    const budget=parseInt(document.getElementById("catEditBudget").value)||0;
+    state.cats[idx]={...cat,icon,label,color,budget};
+    saveAll(); closeModal(); renderPage("settings");
+  });
+}
+
+// ━━ カード追加/編集 ━━
+function showAddCardModal(){
+  openModal("カードを追加",`
+    <div class="field">${iconPickerHTML("cardIcon","💳",CARD_ICONS)}</div>
+    <div class="field">${colorPickerHTML("cardColor","#444444",CARD_COLORS)}</div>
+    <div class="field"><input type="text" id="cardName" placeholder="カード名（例：楽天カード）" class="field-input"/></div>
+  `,"追加する",()=>{
+    const name=document.getElementById("cardName").value.trim();
+    if(!name)return;
+    const icon=getSelectedIcon("cardIcon")||"💳";
+    const color=getSelectedColor("cardColor")||"#444444";
+    state.cards.push({id:"card_"+Date.now(),icon,name,color});
+    saveAll(); closeModal(); renderPage("cards");
+  });
+}
+function showEditCardModal(id){
+  const card=state.cards.find(c=>c.id===id);
+  openModal("カードを編集",`
+    <div class="field">${iconPickerHTML("cardEditIcon",card.icon,CARD_ICONS)}</div>
+    <div class="field">${colorPickerHTML("cardEditColor",card.color,CARD_COLORS)}</div>
+    <div class="field"><input type="text" id="cardEditName" value="${card.name}" class="field-input" style="border-color:#4facfe"/></div>
+  `,"保存する",()=>{
+    const name=document.getElementById("cardEditName").value.trim();
+    if(!name)return;
+    const icon=getSelectedIcon("cardEditIcon")||card.icon;
+    const color=getSelectedColor("cardEditColor")||card.color;
+    const idx=state.cards.findIndex(c=>c.id===id);
+    state.cards[idx]={...card,icon,name,color};
+    saveAll(); closeModal(); renderPage("cards");
+  });
+}
+
+// ━━ 口座追加 ━━
+function showAddAccModal(){
+  openModal("口座を追加",`
+    <div class="field">${iconPickerHTML("accIcon","🏦",["🏦","💴","🐷","💳","📒","🏧","💰","🪙","📱","🌐"])}</div>
+    <div class="field">${colorPickerHTML("accColor","#4facfe",["#4facfe","#43e97b","#ff8c69","#ab8ee8","#ffb347","#ef5350","#66bb6a","#aaa"])}</div>
+    <div class="field"><input type="text" id="accName" placeholder="口座名（例：〇〇銀行）" class="field-input"/></div>
+    <div class="field"><div style="position:relative"><span class="field-prefix" style="color:#4facfe">¥</span>
+      <input type="number" id="accBalance" placeholder="現在の残高" class="field-input-lg"/></div>
+    </div>
+  `,"追加する",()=>{
+    const name=document.getElementById("accName").value.trim();
+    if(!name)return;
+    const icon=getSelectedIcon("accIcon")||"🏦";
+    const color=getSelectedColor("accColor")||"#4facfe";
+    const balance=parseInt(document.getElementById("accBalance").value)||0;
+    state.accounts.push({id:"acc_"+Date.now(),icon,name,color,balance});
+    saveAll(); closeModal(); renderPage("accounts");
+  });
+}
+
+// ━━ リセット ━━
+function showResetModal(){
+  const {remaining}=calcTotals();
+  openModal("🌸 節約お楽しみ貯金",`
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:52px">${remaining>0?"🎉":"🔄"}</div>
+      ${remaining>0
+        ?`<div style="font-weight:800;font-size:18px;color:#333;margin-top:8px">お疲れ様でした！</div>
+           <div style="color:#555;font-size:14px;margin-top:6px">残金 <strong style="color:#ff8c00">${yen(remaining)}</strong> を節約お楽しみ貯金に移して来月スタート✨</div>`
+        :`<div style="font-weight:700;font-size:15px;color:#888;margin-top:8px">残金はありません。リセットして来月スタートします。</div>`}
+    </div>
+  `,remaining>0?`${yen(remaining)} を節約お楽しみ貯金へ！`:"リセットする",doReset);
+}
+
+function doReset(){
+  const {remaining}=calcTotals();
+  if(remaining>0){
+    state.savings+=remaining;
+    state.savHist.unshift({date:new Date().toLocaleDateString("ja-JP"),amount:remaining,label:getBM().label});
+  }
+  state.exps=[]; state.incomes=[];
+  saveAll(); closeModal(); renderPage("home");
+}
+
+// ━━ 起動 ━━
+document.getElementById("pwInput").focus();
+</script>
+</body>
+</html>
